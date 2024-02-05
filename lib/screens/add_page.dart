@@ -1,11 +1,11 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:todo_app/services/todo_services.dart';
 
 class AddTodoPage extends StatefulWidget {
   final Map? todo;
-  const AddTodoPage({super.key,this.todo});
+  const AddTodoPage({super.key, this.todo});
 
   @override
   State<AddTodoPage> createState() => _AddTodoPageState();
@@ -20,7 +20,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
     super.initState();
     final todo = widget.todo;
 
-    if(todo != null){
+    if (todo != null) {
       isEdit = true;
       final title = todo['title'];
       final description = todo['description'];
@@ -33,7 +33,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEdit?"Edit Todo" : "Add Todo"),
+        title: Text(isEdit ? "Edit Todo" : "Add Todo"),
       ),
       body: ListView(
         padding: EdgeInsets.all(20),
@@ -55,21 +55,23 @@ class _AddTodoPageState extends State<AddTodoPage> {
           SizedBox(
             height: 20,
           ),
-          ElevatedButton(onPressed:isEdit? updateData: submitData, child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(isEdit?"Update":'Submit'),
-          ))
+          ElevatedButton(
+              onPressed: isEdit ? updateData : submitData,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(isEdit ? "Update" : 'Submit'),
+              ))
         ],
       ),
     );
   }
 
-  Future<void> updateData() async{
+  Future<void> updateData() async {
     // Get the data from the form
     final todo = widget.todo;
-    if(todo == null){
+    if (todo == null) {
       print("You can not call updated without todo data");
-      return ;
+      return;
     }
     final id = todo['_id'];
     final title = titleController.text;
@@ -82,14 +84,9 @@ class _AddTodoPageState extends State<AddTodoPage> {
       "is_completed": false,
     };
     // Submit updated data to the server
-    final url = 'https://api.nstack.in/v1/todos/$id';
-    final uri = Uri.parse(url);
-    final response = await http.put(
-      uri,
-      body: jsonEncode(body),
-      headers: {'Content-Type': 'application/json'},
-    );
-    if (response.statusCode == 200) {
+    final isSuccess = await TodoService.updateTodo(id, body);
+
+    if (isSuccess) {
       titleController.text = '';
       descriptionController.text = '';
       print('Creation Success');
@@ -100,8 +97,6 @@ class _AddTodoPageState extends State<AddTodoPage> {
 
       // print(response.body);
     }
-
-
   }
 
   Future<void> submitData() async {
